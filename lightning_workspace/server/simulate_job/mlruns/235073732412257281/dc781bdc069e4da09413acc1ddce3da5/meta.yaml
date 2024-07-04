@@ -1,0 +1,15 @@
+artifact_uri: file:///home/tran/Coding/Thesis/NVFlare/lightning_workspace/server/simulate_job/artifacts/dc781bdc069e4da09413acc1ddce3da5/artifacts
+end_time: 1716629194881
+entry_point_name: ''
+experiment_id: '235073732412257281'
+lifecycle_stage: active
+run_id: dc781bdc069e4da09413acc1ddce3da5
+run_name: site-2-171662-nvflare-sag-pt-with-mlflow
+run_uuid: dc781bdc069e4da09413acc1ddce3da5
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1716628277465
+status: 3
+tags: []
+user_id: unknown
