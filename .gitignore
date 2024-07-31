@@ -173,3 +173,4 @@ __pycache__
 *.gz
 *.tar.gz
 examples/hello-world/ml-to-fl/pt/NVFlare/examples/hello-world/ml-to-fl/pt/code/data/cifar-10-python.tar.gz
+examples/hello-world/ml-to-fl/pt/NVFlare/examples/hello-world/ml-to-fl/pt/code/data/*.tar.gz
