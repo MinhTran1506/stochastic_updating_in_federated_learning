@@ -20,7 +20,7 @@ import torchvision.transforms as transforms # type: ignore
 import os
 import random
 import numpy as np # type: ignore
-from net import Net, Net2, Net4
+from net import Net
 from distutils.version import LooseVersion as Version # type: ignore
 
 # (1) import nvflare client API
@@ -49,7 +49,7 @@ def main():
     testset = torchvision.datasets.CIFAR10(root=DATASET_PATH, train=False, download=True, transform=transform)
     testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=2)
 
-    net = Net2()
+    net = Net()
 
     # (2) initializes NVFlare client API
     flare.init()
@@ -104,7 +104,7 @@ def main():
         # (5) wraps evaluation logic into a method to re-use for
         #       evaluation on both trained and received model
         def evaluate(input_weights):
-            net = Net2()
+            net = Net()
             net.load_state_dict(input_weights)
             # (optional) use GPU to speed things up
             net.to(DEVICE)

@@ -145,5 +145,10 @@ class Net(nn.Module):
         x = torch.flatten(x, 1)
         x = F.relu(self.bn7(self.fc1(x)))
         x = self.dropout_dense(x)
-        x = self.fc2(x)
+        # x = self.fc2(x)
+
+        # Apply random mask on the last Linear layer
+        mask = torch.bernoulli(torch.ones(self.fc2.weight.shape) * 0.5)
+        x = F.linear(x, self.fc2.weight * mask, self.fc2.bias)
+
         return x

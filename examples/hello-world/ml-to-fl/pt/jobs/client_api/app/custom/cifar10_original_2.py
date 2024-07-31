@@ -19,7 +19,7 @@ import torch.optim as optim# type: ignore
 import torchvision# type: ignore
 import torchvision.transforms as transforms# type: ignore
 import matplotlib.pyplot as plt # type: ignore
-from net import Net, Net2, Net3, Net4
+from net import Net, Net2, Net3
 from helper_evaluation import set_all_seeds, set_deterministic, compute_accuracy
 from helper_train import train_model
 from helper_plotting import plot_training_loss, plot_accuracy, show_examples
@@ -80,7 +80,7 @@ def main():
     # validloader = torch.utils.data.DataLoader(val_subset, batch_size=batch_size, shuffle=False, num_workers=2)
     # testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=2)
 
-    net = Net4()
+    net = Net()
 
     criterion = nn.CrossEntropyLoss()
     # optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)

@@ -166,4 +166,7 @@ audit.log
 
 # python
 __pycache__
-.pyc
+.pycs
+
+# data
+*.tar
