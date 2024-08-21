@@ -67,4 +67,4 @@ def train_model(model, num_epochs, train_loader,
     test_acc = compute_accuracy(model, test_loader, device=device)
     print(f'Test accuracy {test_acc :.2f}%')
 
-    return minibatch_loss_list, train_acc_list, valid_acc_list
+    return minibatch_loss_list, train_acc_list, valid_acc_list, test_acc

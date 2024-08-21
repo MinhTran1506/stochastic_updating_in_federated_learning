@@ -3,9 +3,8 @@ import torch
 from helper_evaluation import compute_accuracy
 from nvflare.client.tracking import SummaryWriter
 
-
 def train_model(model, num_epochs, train_loader,
-                valid_loader, test_loader, optimizer, criterion, device, input_model=None, summary_writer=None, scheduler=None):
+                valid_loader, test_loader, optimizer, criterion, device, input_model=None, summary_writer=None, scheduler=None, stochastic=False):
 
     start_time = time.time()
     minibatch_loss_list, train_acc_list, valid_acc_list = [], [], []
@@ -13,8 +12,11 @@ def train_model(model, num_epochs, train_loader,
     if summary_writer is not None:
         summary_writer = SummaryWriter()
     print("Starting training...")
+    log_interval = 2000
+    model.train()
     for epoch in range(num_epochs):
-
+        if stochastic:
+            model.resample_dropout_masks(next(iter(train_loader))[0])
         model.train()
         for batch_idx, (features, targets) in enumerate(train_loader):
 
@@ -22,7 +24,7 @@ def train_model(model, num_epochs, train_loader,
             targets = targets.to(device)
 
             # ## FORWARD AND BACK PROP
-            logits = model(features)
+            logits = model(features, apply_mask=True)
             loss = criterion(logits, targets)
             optimizer.zero_grad()
 
@@ -33,11 +35,8 @@ def train_model(model, num_epochs, train_loader,
 
             # ## LOGGING
             minibatch_loss_list.append(loss.item())
-            # if not batch_idx % 50:
-            #     print(f'Epoch: {epoch+1:03d}/{num_epochs:03d} '
-            #           f'| Batch {batch_idx:04d}/{len(train_loader):04d} '
-            #           f'| Loss: {loss:.4f}')
-            if batch_idx % 2000 == 1999:  # print every 2000 mini-batches
+
+            if batch_idx % log_interval == (log_interval - 1):  # print every `log_interval` mini-batches
                 print(f"[{epoch + 1}, {batch_idx + 1:5d}] loss: {loss:.4f}")
 
                 if input_model is not None:
@@ -50,8 +49,8 @@ def train_model(model, num_epochs, train_loader,
         model.eval()
         with torch.no_grad():  # save memory during inference
             
-            train_acc = compute_accuracy(model, train_loader, device=device)
-            valid_acc = compute_accuracy(model, valid_loader, device=device)
+            train_acc = compute_accuracy(model, train_loader, device=device, apply_mask=False)
+            valid_acc = compute_accuracy(model, valid_loader, device=device,apply_mask=False)
             print(f'Epoch: {epoch+1:03d}/{num_epochs:03d} '
                   f'| Train: {train_acc :.2f}% '
                   f'| Validation: {valid_acc :.2f}%')
@@ -60,6 +59,8 @@ def train_model(model, num_epochs, train_loader,
 
         elapsed = (time.time() - start_time)/60
         print(f'Time elapsed: {elapsed:.2f} min')
+        # PATH = "./cifar_net.pth"
+        # torch.save(model.state_dict(), PATH)
 
     elapsed = (time.time() - start_time)/60
     print(f'Total Training Time: {elapsed:.2f} min')
@@ -67,4 +68,4 @@ def train_model(model, num_epochs, train_loader,
     test_acc = compute_accuracy(model, test_loader, device=device)
     print(f'Test accuracy {test_acc :.2f}%')
 
-    return minibatch_loss_list, train_acc_list, valid_acc_list
+    return minibatch_loss_list, train_acc_list, valid_acc_list, test_acc

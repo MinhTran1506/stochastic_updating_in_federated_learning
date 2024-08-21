@@ -34,6 +34,11 @@ def plot_training_loss(minibatch_loss_list, num_epochs, iter_per_epoch,
         None
     """
     plt.figure()
+
+    # Clear the current figure and axis
+    plt.clf()
+    plt.cla()
+
     ax1 = plt.subplot(1, 1, 1)
     
     # Plot the minibatch loss against the iteration number.
@@ -77,10 +82,11 @@ def plot_training_loss(minibatch_loss_list, num_epochs, iter_per_epoch,
 
     if results_dir is not None:
         if not os.path.exists(results_dir):
-            os.makedirs(results_dir)
-        image_path = os.path.join(results_dir, 'plot_training_loss.png')
+            os.makedirs(results_dir, exist_ok=True)
+        image_path = os.path.join(results_dir, 'plot_training_loss_cifar_stochastic.png')
         plt.savefig(image_path)
         print(f"Image created and saved in {image_path}")
+    plt.close()
 
 
 def plot_accuracy(train_acc_list, valid_acc_list, results_dir):
@@ -106,6 +112,12 @@ def plot_accuracy(train_acc_list, valid_acc_list, results_dir):
     Returns:
         None
     """
+    plt.figure()
+
+    # Clear the current figure and axis
+    plt.clf()
+    plt.cla()
+    
     num_epochs = len(train_acc_list)
     
     plt.plot(np.arange(1, num_epochs+1),
@@ -121,10 +133,11 @@ def plot_accuracy(train_acc_list, valid_acc_list, results_dir):
 
     if results_dir is not None:
         if not os.path.exists(results_dir):
-            os.makedirs(results_dir)
-        image_path = os.path.join(results_dir, 'plot_acc_training_validation.png')
+            os.makedirs(results_dir, exist_ok=True)
+        image_path = os.path.join(results_dir, 'plot_acc_training_validation_cifar_stochastic.png')
         plt.savefig(image_path)
         print(f"Image created and saved in {image_path}")
+    plt.close()
 
 
 def show_examples(model, data_loader):
@@ -152,4 +165,26 @@ def show_examples(model, data_loader):
     plt.show()
 
 
+def plot_data_distribution(dataset, dataset_name, save_path):
+    # Check if dataset is a subset and get the underlying dataset if so
+    if isinstance(dataset, torch.utils.data.Subset):
+        underlying_dataset = dataset.dataset
+        indices = dataset.indices
+    else:
+        underlying_dataset = dataset
+        indices = range(len(dataset))
 
+    class_counts = np.zeros(len(underlying_dataset.classes))
+
+    for idx in indices:
+        _, target = underlying_dataset[idx]
+        class_counts[target] += 1
+
+    plt.figure(figsize=(10, 5))
+    plt.bar(range(len(class_counts)), class_counts, tick_label=underlying_dataset.classes)
+    plt.title(f'Data Distribution in {dataset_name}')
+    plt.xlabel('Class')
+    plt.ylabel('Number of samples')
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig(save_path)

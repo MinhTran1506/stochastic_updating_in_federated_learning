@@ -1,6 +1,6 @@
-artifact_location: file://home/tran/Coding/Thesis/NVFlare/examples/hello-world/ml-to-fl/pt/client_api_workspace/server/simulate_job/mlruns/0
-creation_time: 1720632463790
+artifact_location: file://home/tran/Coding/Thesis/stochastic_updating_in_federated_learning/examples/hello-world/ml-to-fl/pt/client_api_workspace/server/simulate_job/mlruns/0
+creation_time: 1723917033333
 experiment_id: '0'
-last_update_time: 1720632463790
+last_update_time: 1723917033333
 lifecycle_stage: active
 name: Default

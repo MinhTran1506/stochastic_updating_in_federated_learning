@@ -12,92 +12,124 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import torch
-import torch.nn as nn
-import torch.optim as optim
-import torchvision
-import torchvision.transforms as transforms
-from net import Net, Net2
+import os
+import torch# type: ignore
+import torch.nn as nn# type: ignore
+import torch.optim as optim# type: ignore
+import torchvision# type: ignore
+import torchvision.transforms as transforms# type: ignore
+import matplotlib.pyplot as plt # type: ignore
+from net import Net_original
+from helper_evaluation import set_all_seeds, set_deterministic
+from helper_train import train_model
+from helper_plotting import plot_training_loss, plot_accuracy, plot_data_distribution
+from torch.utils.data import SubsetRandomSampler
 
 # (optional) set a fix place so we don't need to download everytime
-DATASET_PATH = "/tmp/nvflare/data"
+#DATASET_PATH = "/tmp/nvflare/data"
+DATASET_PATH = "NVFlare/examples/hello-world/ml-to-fl/pt/code/data"
+
 # (optional) We change to use GPU to speed things up.
 # if you want to use CPU, change DEVICE="cpu"
 # DEVICE = "cuda:0"
-DEVICE = "cpu"
-
+DEVICE = "cuda:0" if torch.cuda.is_available() else 'cpu'
+RANDOM_SEED = 42
 
 def main():
-    transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+    set_all_seeds(RANDOM_SEED)
+    set_deterministic()
+
+    train_transforms = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+    test_transforms = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+    download = not os.path.exists(os.path.join(DATASET_PATH, 'cifar-10-batches-py'))
 
     batch_size = 4
-    epochs = 2
+    epochs = 50
 
-    trainset = torchvision.datasets.CIFAR10(root=DATASET_PATH, train=True, download=True, transform=transform)
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=2)
+    print(f"------------Train on {DEVICE}-----------")
 
-    testset = torchvision.datasets.CIFAR10(root=DATASET_PATH, train=False, download=True, transform=transform)
-    testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=2)
+    train_transforms = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+    test_transforms = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
-    net = Net()
+    download = not os.path.exists(os.path.join(DATASET_PATH, 'cifar'))
+
+    full_dataset = torchvision.datasets.CIFAR10(root=DATASET_PATH, train=True, download=download, transform=train_transforms)
+    trainset = torchvision.datasets.CIFAR10(root=DATASET_PATH, train=True, download=download, transform=train_transforms)
+    validset = torchvision.datasets.CIFAR10(root=DATASET_PATH, train=True, download=download, transform=test_transforms)
+    testset = torchvision.datasets.CIFAR10(root=DATASET_PATH, train=False, download=download, transform=test_transforms)
+
+
+    validation_fraction = 0.1
+    num = int(validation_fraction * len(trainset))
+    train_indices = torch.arange(0, len(trainset) - num)
+    valid_indices = torch.arange(len(trainset) - num, len(trainset))
+
+    train_sampler = SubsetRandomSampler(train_indices)
+    valid_sampler = SubsetRandomSampler(valid_indices)
+
+    trainloader = torch.utils.data.DataLoader(dataset=trainset,
+                                  batch_size=batch_size,
+                                  num_workers=2,
+                                  drop_last=True,
+                                  sampler=train_sampler)
+    validloader = torch.utils.data.DataLoader(dataset=validset,
+                                  batch_size=batch_size,
+                                  num_workers=2,
+                                  sampler=valid_sampler)
+
+    testloader = torch.utils.data.DataLoader(dataset=testset,
+                                batch_size=batch_size,
+                                num_workers=2,
+                                shuffle=False)
+    
+    results_dir = "./results_original"
+
+    if not os.path.exists(results_dir):
+        os.makedirs(results_dir, exist_ok=True)
+    # Plot data distribution for the full dataset before splitting
+    plot_data_distribution(full_dataset, "Full Dataset", os.path.join(results_dir, "full_dataset_distribution.png"))
+
+    # Plot data distribution for each set
+    plot_data_distribution(trainset, "Training Set", os.path.join(results_dir, "trainset_distribution.png"))
+    plot_data_distribution(validset, "Validation Set", os.path.join(results_dir, "validset_distribution.png"))
+    plot_data_distribution(testset, "Test Set", os.path.join(results_dir, "testset_distribution.png"))
+
+    net = Net_original()
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+    # optimizer = optim.AdamW(net.parameters(), lr=0.001, weight_decay=1e-4)
+    # scheduler = CosineAnnealingLR(optimizer, T_max=200)
+    PATH = "./cifar_net.pth"
 
     # (optional) use GPU to speed things up
     net.to(DEVICE)
 
-    for epoch in range(epochs):  # loop over the dataset multiple times
 
-        running_loss = 0.0
-        for i, data in enumerate(trainloader, 0):
-            # get the inputs; data is a list of [inputs, labels]
-            # (optional) use GPU to speed things up
-            inputs, labels = data[0].to(DEVICE), data[1].to(DEVICE)
+    minibatch_loss_list, train_acc_list, valid_acc_list = train_model(
+        model=net,
+        num_epochs=epochs,
+        train_loader=trainloader,
+        valid_loader=validloader,
+        test_loader=testloader,
+        optimizer=optimizer,
+        criterion=criterion,
+        device=DEVICE,
+        input_model=None,
+        summary_writer=None,
+        scheduler=None,
+        stochastic=False
+    )
 
-            # zero the parameter gradients
-            optimizer.zero_grad()
+    print("Saving results...")
+    os.makedirs(results_dir, exist_ok=True)
 
-            # forward + backward + optimize
-            outputs = net(inputs)
-            loss = criterion(outputs, labels)
-            loss.backward()
-            optimizer.step()
-
-            # print statistics
-            running_loss += loss.item()
-            if i % 2000 == 1999:  # print every 2000 mini-batches
-                print(f"[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 2000:.3f}")
-                running_loss = 0.0
-
+    plot_training_loss(minibatch_loss_list, epochs, len(trainloader), results_dir)
+    plot_accuracy(train_acc_list, valid_acc_list, results_dir)
     print("Finished Training")
 
-    PATH = "./cifar_net.pth"
+    PATH = "./cifar_net_original.pth"
     torch.save(net.state_dict(), PATH)
-
-    net = Net()
-
-    
-
-    net.load_state_dict(torch.load(PATH))
-    # (optional) use GPU to speed things up
-    net.to(DEVICE)
-
-    correct = 0
-    total = 0
-    # since we're not training, we don't need to calculate the gradients for our outputs
-    with torch.no_grad():
-        for data in testloader:
-            # (optional) use GPU to speed things up
-            images, labels = data[0].to(DEVICE), data[1].to(DEVICE)
-            # calculate outputs by running images through the network
-            outputs = net(images)
-            # the class with the highest energy is what we choose as prediction
-            _, predicted = torch.max(outputs.data, 1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
-
-    print(f"Accuracy of the network on the 10000 test images: {100 * correct // total} %")
 
 
 if __name__ == "__main__":

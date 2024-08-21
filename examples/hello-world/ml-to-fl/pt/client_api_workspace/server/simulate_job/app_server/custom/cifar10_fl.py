@@ -22,6 +22,10 @@ import random
 import numpy as np # type: ignore
 from net import Net
 from distutils.version import LooseVersion as Version # type: ignore
+# Importing helper functions
+from helper_evaluation import set_all_seeds, set_deterministic, compute_accuracy
+from helper_train import train_model
+from helper_plotting import plot_training_loss, plot_accuracy, show_examples
 
 # (1) import nvflare client API
 import nvflare.client as flare
@@ -35,8 +39,11 @@ DATASET_PATH = "/tmp/nvflare/data"
 # if you want to use CPU, change DEVICE="cpu"
 # DEVICE = "cuda:0"
 DEVICE = 'cuda:0' if torch.cuda.is_available() else 'cpu'
-
+RANDOM_SEED = 42
 def main():
+    # Set seeds and deterministic behavior
+    set_all_seeds(RANDOM_SEED)
+    set_deterministic()
 
     transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
@@ -82,7 +89,7 @@ def main():
                 optimizer.zero_grad()
 
                 # forward + backward + optimize
-                outputs = net(inputs)
+                outputs = net(inputs, apply_mask=True)
                 loss = criterion(outputs, labels)
                 loss.backward()
                 optimizer.step()
@@ -117,7 +124,7 @@ def main():
                     # (optional) use GPU to speed things up
                     images, labels = data[0].to(DEVICE), data[1].to(DEVICE)
                     # calculate outputs by running images through the network
-                    outputs = net(images)
+                    outputs = net(images, apply_mask=False)
                     # the class with the highest energy is what we choose as prediction
                     _, predicted = torch.max(outputs.data, 1)
                     total += labels.size(0)

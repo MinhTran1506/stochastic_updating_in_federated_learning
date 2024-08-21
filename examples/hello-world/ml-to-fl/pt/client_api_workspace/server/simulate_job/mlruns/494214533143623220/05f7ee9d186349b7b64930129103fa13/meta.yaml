@@ -1,0 +1,15 @@
+artifact_uri: file:///home/tran/Coding/Thesis/stochastic_updating_in_federated_learning/examples/hello-world/ml-to-fl/pt/client_api_workspace/server/simulate_job/artifacts/05f7ee9d186349b7b64930129103fa13/artifacts
+end_time: 1723922727618
+entry_point_name: ''
+experiment_id: '494214533143623220'
+lifecycle_stage: active
+run_id: 05f7ee9d186349b7b64930129103fa13
+run_name: site-1-172391-nvflare-sag-pt-with-mlflow
+run_uuid: 05f7ee9d186349b7b64930129103fa13
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1723917033347
+status: 3
+tags: []
+user_id: unknown

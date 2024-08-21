@@ -25,4 +25,6 @@ nvflare_example
 
 *.gz
 *.tar.gz
+**/*.tar.gz
+**/*.gz
 examples/hello-world/ml-to-fl/pt/NVFlare/examples/hello-world/ml-to-fl/pt/code/data/cifar-10-python.tar.gz
