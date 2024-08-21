@@ -26,24 +26,23 @@ The main contributions of this project are:
 
 ```plaintext
 ├── code/
-│   ├── baseline/
-│   │   └── ...
 │   ├── stochastic_updating/
-│   │   ├── main.py
+│   │   ├── cifar10_original.py
+│   │   ├── cifar10_original_stochastic.py
+│   │   ├── cifar10_fl_original.py
+│   │   ├── cifar10_fl_stochastic.py
+│   │   ├── net.py
 │   │   ├── helper_train.py
 │   │   ├── helper_evaluate.py
-│   │   └── ...
-├── logs/
-│   ├── client_1_original.txt
-│   ├── client_1_stochastic.txt
-│   └── client_2_original.txt
-├── thesis/
-│   ├── chapters/
-│   │   ├── methodology.tex
-│   │   └── experiments.tex
-│   ├── references.bib
-│   └── thesis_main.tex
+│   │   └── helper_plotting.py
+├── client_api_workspace
+│   ├── server
+│   ├── site-1
+│   │   ├── results
+│   └── site-2
+│       ├── results
 ├── README.md
+├── results
 └── requirements.txt
 ```
 
