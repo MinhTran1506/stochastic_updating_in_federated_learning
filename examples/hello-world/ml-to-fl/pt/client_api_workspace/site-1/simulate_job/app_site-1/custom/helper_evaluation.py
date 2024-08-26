@@ -44,7 +44,7 @@ def set_deterministic():
         torch.use_deterministic_algorithms(True)
 
 
-def compute_accuracy(model, data_loader, device):
+def compute_accuracy(model, data_loader, device, apply_mask=False):
     """
     Compute the accuracy of a model on a given dataset.
 
@@ -69,7 +69,7 @@ def compute_accuracy(model, data_loader, device):
             features = features.to(device)
             targets = targets.float().to(device)
 
-            logits = model(features)
+            logits = model(features, apply_mask=apply_mask)
             _, predicted_labels = torch.max(logits, 1)
 
             num_examples += targets.size(0)

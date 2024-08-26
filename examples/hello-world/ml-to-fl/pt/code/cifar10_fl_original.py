@@ -7,7 +7,7 @@ import torch.optim as optim # type: ignore
 import torchvision # type: ignore
 import torchvision.transforms as transforms  # type: ignore
 import matplotlib.pyplot as plt  # type: ignore
-from net import Net
+from net import Net, NetNoStochasticUpdating
 from torch.optim.lr_scheduler import CosineAnnealingLR  # type: ignore
 # (1) import nvflare client API
 import nvflare.client as flare
@@ -19,6 +19,7 @@ from nvflare.client.tracking import SummaryWriter
 from helper_evaluation import set_all_seeds, set_deterministic, compute_accuracy
 from helper_train import train_model
 from helper_plotting import plot_training_loss, plot_accuracy, plot_data_distribution
+from torch.utils.data import SubsetRandomSampler
 
 # (optional) set a fixed place so we don't need to download every time
 DATASET_PATH = "NVFlare/examples/hello-world/ml-to-fl/pt/code/data"
@@ -44,6 +45,7 @@ def main():
     epochs = 10
 
     full_dataset = torchvision.datasets.CIFAR10(root=DATASET_PATH, train=True, download=download, transform=train_transforms)
+    validset = torchvision.datasets.CIFAR10(root=DATASET_PATH, train=True, download=download, transform=test_transforms)
     trainset = torchvision.datasets.CIFAR10(root=DATASET_PATH, train=True, download=download, transform=train_transforms)
     testset = torchvision.datasets.CIFAR10(root=DATASET_PATH, train=False, download=download, transform=test_transforms)
 
@@ -67,7 +69,6 @@ def main():
                                 batch_size=batch_size,
                                 num_workers=2,
                                 shuffle=False)
-
     
     results_dir = "./results_original"
 
@@ -81,7 +82,7 @@ def main():
     plot_data_distribution(validset, "Validation Set", os.path.join(results_dir, "validset_distribution.png"))
     plot_data_distribution(testset, "Test Set", os.path.join(results_dir, "testset_distribution.png"))
 
-    net = Net(device=DEVICE)
+    net = NetNoStochasticUpdating(device=DEVICE)
 
     # (2) initializes NVFlare client API
     flare.init()

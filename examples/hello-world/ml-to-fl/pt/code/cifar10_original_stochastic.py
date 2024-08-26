@@ -12,6 +12,7 @@ from helper_evaluation import set_all_seeds, set_deterministic
 from helper_train import train_model
 from helper_plotting import plot_training_loss, plot_accuracy, plot_data_distribution
 from torch.optim.lr_scheduler import CosineAnnealingLR # type: ignore
+from torch.utils.data import SubsetRandomSampler
 
 # (optional) set a fix place so we don't need to download everytime
 DATASET_PATH = "NVFlare/examples/hello-world/ml-to-fl/pt/code/data"
@@ -38,28 +39,33 @@ def main():
     # Load the datasets
     full_dataset = torchvision.datasets.CIFAR10(root=DATASET_PATH, train=True, download=download, transform=train_transforms)
     trainset = torchvision.datasets.CIFAR10(root=DATASET_PATH, train=True, download=download, transform=train_transforms)
+    validset = torchvision.datasets.CIFAR10(root=DATASET_PATH, train=True, download=download, transform=test_transforms)
     testset = torchvision.datasets.CIFAR10(root=DATASET_PATH, train=False, download=download, transform=test_transforms)
 
     # Define validation set
     validation_fraction = 0.1
-    num_val_samples = int(validation_fraction * len(trainset))
-    valid_indices = torch.arange(len(trainset) - num_val_samples, len(trainset))
-    validset = torch.utils.data.Subset(trainset, valid_indices)
+    num = int(validation_fraction * len(trainset))
+    train_indices = torch.arange(0, len(trainset) - num)
+    valid_indices = torch.arange(len(trainset) - num, len(trainset))
 
-    # trainset = torchvision.datasets.CIFAR10(root=DATASET_PATH, train=True, download=download, transform=train_transforms)
+    train_sampler = SubsetRandomSampler(train_indices)
+    valid_sampler = SubsetRandomSampler(valid_indices)
+
     trainloader = torch.utils.data.DataLoader(dataset=trainset,
                                   batch_size=batch_size,
                                   num_workers=2,
-                                  drop_last=True)
-    # validset = torchvision.datasets.CIFAR10(root=DATASET_PATH, train=True, download=download, transform=test_transforms)
+                                  drop_last=True,
+                                  sampler=train_sampler)
     validloader = torch.utils.data.DataLoader(dataset=validset,
                                   batch_size=batch_size,
-                                  num_workers=2)
-    # testset = torchvision.datasets.CIFAR10(root=DATASET_PATH, train=False, download=download, transform=test_transforms)
+                                  num_workers=2,
+                                  sampler=valid_sampler)
+
     testloader = torch.utils.data.DataLoader(dataset=testset,
                                 batch_size=batch_size,
                                 num_workers=2,
                                 shuffle=False)
+    
 
 
 
@@ -87,7 +93,7 @@ def main():
 
 
     # Call the function
-    minibatch_loss_list, train_acc_list, valid_acc_list = train_model(
+    minibatch_loss_list, train_acc_list, valid_acc_list, accuracy = train_model(
         model=net,
         num_epochs=epochs,
         train_loader=trainloader,

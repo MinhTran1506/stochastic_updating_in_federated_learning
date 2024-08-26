@@ -83,7 +83,7 @@ def plot_training_loss(minibatch_loss_list, num_epochs, iter_per_epoch,
     if results_dir is not None:
         if not os.path.exists(results_dir):
             os.makedirs(results_dir, exist_ok=True)
-        image_path = os.path.join(results_dir, 'plot_training_loss_cifar_stochastic.png')
+        image_path = os.path.join(results_dir, 'plot_training_loss.png')
         plt.savefig(image_path)
         print(f"Image created and saved in {image_path}")
     plt.close()
@@ -134,7 +134,7 @@ def plot_accuracy(train_acc_list, valid_acc_list, results_dir):
     if results_dir is not None:
         if not os.path.exists(results_dir):
             os.makedirs(results_dir, exist_ok=True)
-        image_path = os.path.join(results_dir, 'plot_acc_training_validation_cifar_stochastic.png')
+        image_path = os.path.join(results_dir, 'plot_acc_training_validation.png')
         plt.savefig(image_path)
         print(f"Image created and saved in {image_path}")
     plt.close()

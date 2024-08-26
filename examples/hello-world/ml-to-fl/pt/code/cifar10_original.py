@@ -19,7 +19,7 @@ import torch.optim as optim# type: ignore
 import torchvision# type: ignore
 import torchvision.transforms as transforms# type: ignore
 import matplotlib.pyplot as plt # type: ignore
-from net import Net_original
+from net import NetNoStochasticUpdating #Net_original, 
 from helper_evaluation import set_all_seeds, set_deterministic
 from helper_train import train_model
 from helper_plotting import plot_training_loss, plot_accuracy, plot_data_distribution
@@ -94,7 +94,7 @@ def main():
     plot_data_distribution(validset, "Validation Set", os.path.join(results_dir, "validset_distribution.png"))
     plot_data_distribution(testset, "Test Set", os.path.join(results_dir, "testset_distribution.png"))
 
-    net = Net_original()
+    net = NetNoStochasticUpdating()
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
@@ -106,7 +106,7 @@ def main():
     net.to(DEVICE)
 
 
-    minibatch_loss_list, train_acc_list, valid_acc_list = train_model(
+    minibatch_loss_list, train_acc_list, valid_acc_list, accuracy = train_model(
         model=net,
         num_epochs=epochs,
         train_loader=trainloader,
