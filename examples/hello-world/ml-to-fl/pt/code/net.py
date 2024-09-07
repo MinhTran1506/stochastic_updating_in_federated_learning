@@ -201,7 +201,8 @@ class Net(nn.Module):
         x = F.relu(self.bn7(self.fc1(x)))
         if apply_mask and self.dense_mask is not None:
             self.dense_mask = self.dense_mask.to(x.device)
-            x = x * self.dense_mask 
+            x = x * self.dense_mask
+            x = x / (1 - self.dropout_dense)
         x = self.fc2(x)
         
         return x
@@ -209,5 +210,5 @@ class Net(nn.Module):
     def resample_dropout_masks(self, x):
         # Resample dropout mask for the dense layer
         self.dense_mask = torch.bernoulli(torch.ones(self.fc1.out_features) * (1 - self.dropout_dense)).to(self.device)
-        self.dense_mask /= (1 - self.dropout_dense)  # Scale by 1/(1-p) to maintain expected values
+        # self.dense_mask /= (1 - self.dropout_dense)  # Scale by 1/(1-p) to maintain expected values
 
